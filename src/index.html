@@ -10,7 +10,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Lato:wght@300&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
-    <title>Grafkom K-04_18</title>
+    <title>IF3260 - K04-2 - Tubes 3</title>
 </head>
 
 <body>
@@ -75,13 +75,9 @@
     void main(void) {
         vec4 transformedPos = transformationMatrix * vec4(coordinates.xy, coordinates.z * -1.0, 1.0);
         vec4 projectedPos   = uProjectionMatrix * transformedPos;
-        if (fudgeFactor < 0.01)
-            gl_Position = projectedPos;
-        else {
-            float zDivider = 2.0 + projectedPos.z * fudgeFactor;
-            gl_Position = vec4(projectedPos.xy / zDivider, projectedPos.zw);
-        }
-        colorFactor = min(max((1.0 - transformedPos.z) / 2.0, 0.0), 1.0);
+        float zDivider      = 2.0 + projectedPos.z * fudgeFactor;
+        colorFactor         = min(max((1.0 - transformedPos.z) / 2.0, 0.0), 1.0);
+        gl_Position         = vec4(projectedPos.xy / zDivider, projectedPos.zw);
     }
 </script>
 

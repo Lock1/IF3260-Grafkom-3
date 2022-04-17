@@ -1,23 +1,6 @@
 // IF3260 Grafika Komputer - Tugas Besar 3
 var state;
-var mouse_state = {
-    dragging: false,
-
-    origin: {
-        x: undefined,
-        y: undefined
-    },
-
-    delta: {
-        x: 0,
-        y: 0,
-    },
-
-    constant: {
-        x: 2 * Math.PI / document.getElementById('canvas').width,
-        y: 2 * Math.PI / document.getElementById('canvas').height
-    }
-}
+var mouse_state;
 
 function main() {
     // Set state and event listener
@@ -166,6 +149,7 @@ function setUIEventListener() {
         reader.onload = function (e) {
             state.model = parserObjFile(e.target.result, true);
         };
+        
         reader.readAsText(file);
     }
 
@@ -232,8 +216,9 @@ function setUIEventListener() {
     document.getElementById("shading").addEventListener('change', callbackShading, false);
 
     function resetCallback() {
+        // parserObjFile(cube_obj, true),
         state = {
-            model: parserObjFile(cube_obj, true),
+            model: parserObjFile(simple_cube_obj, true),
 
             transformation: {
                 translation: [0, 0, 0],
@@ -253,6 +238,25 @@ function setUIEventListener() {
             idleAnimation : true,
 
             timeoutIdle   : true,
+        };
+
+        mouse_state = {
+            dragging: false,
+
+            origin: {
+                x: undefined,
+                y: undefined
+            },
+
+            delta: {
+                x: 0,
+                y: 0,
+            },
+
+            constant: {
+                x: 2 * Math.PI / document.getElementById('canvas').width,
+                y: 2 * Math.PI / document.getElementById('canvas').height
+            }
         };
     }
 

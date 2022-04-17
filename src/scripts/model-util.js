@@ -1,13 +1,11 @@
 function parserObjFile(file, normalize = false) {
     // Internal helper function
-    function concatQuadrilateralIndices(arr) {
-        model.indices.push(arr[0]); model.indices.push(arr[1]); model.indices.push(arr[2]);
-        model.indices.push(arr[2]); model.indices.push(arr[3]); model.indices.push(arr[0]);
-        model.numPoints += 6;
+    function concatQuadrilateralIndices(target, arr) {
+        target.push(arr[0]); target.push(arr[1]); target.push(arr[2]);
+        target.push(arr[2]); target.push(arr[3]); target.push(arr[0]);
     }
-    function concatTriangleIndices(arr) {
-        model.indices.push(arr[0]); model.indices.push(arr[1]); model.indices.push(arr[2]);
-        model.numPoints += 3;
+    function concatTriangleIndices(target, arr) {
+        target.push(arr[0]); target.push(arr[1]); target.push(arr[2]);
     }
 
     // Parser helper function
@@ -32,36 +30,68 @@ function parserObjFile(file, normalize = false) {
 
         return vertex;
     }
-    function parseSurface(str) {
-        var raw_data_str = str.substr(2, str.length);
-        var temp_indices = [];
+    function parseTexture(str) {
+        var raw_data_str = str.substr(3, str.length);
+        var texture      = [];
 
-        var temp_str_int = "";
-        var ignore_token = false;
+        texture.push(parseFloat(raw_data_str));
+        raw_data_str = raw_data_str.substr(raw_data_str.indexOf(' '), raw_data_str.length);
+        raw_data_str = raw_data_str.trim();
+        texture.push(parseFloat(raw_data_str));
 
-        for (var i = 0; i < raw_data_str.length; i++) {
-            var number_char = !isNaN(parseInt(raw_data_str[i]));
-
-            if (raw_data_str[i] == ' ')
-                ignore_token = false;
-            else if (!ignore_token && number_char)
-                temp_str_int = temp_str_int + raw_data_str[i];
-            else if (!ignore_token && !number_char) {
-                if (temp_str_int.length)
-                    temp_indices.push(parseInt(temp_str_int));
-                temp_str_int = "";
-                ignore_token = true;
-            }
-        }
-
-        // WebGL indexing range [0, len-1], .obj [1, len]
-        temp_indices.forEach((item, i) => {temp_indices[i] = item - 1;});
-
-        if (temp_indices.length == 4)
-            concatQuadrilateralIndices(temp_indices);
-        else
-            concatTriangleIndices(temp_indices);
+        return texture;
     }
+    function parseNormal(str) {
+        var raw_data_str = str.substr(2, str.length);
+        var normal       = [];
+
+        normal.push(parseFloat(raw_data_str));
+        raw_data_str = raw_data_str.substr(raw_data_str.indexOf(' '), raw_data_str.length);
+        normal.push(parseFloat(raw_data_str));
+        raw_data_str = raw_data_str.trim();
+        raw_data_str = raw_data_str.substr(raw_data_str.indexOf(' '), raw_data_str.length);
+        normal.push(parseFloat(raw_data_str));
+
+        return normal;
+    }
+    function parseSurface(str) {
+        var surface = str.substr(2).split(" ");
+        var vertices = [];
+        var textures = [];
+        var normals  = [];
+
+        surface.forEach((item, i) => {
+            surface[i] = item.split("/");
+            surface[i].forEach((st, j) => {
+                switch (j) {
+                    case 0:
+                        vertices.push(parseInt(st) - 1);
+                        break;
+                    case 1:
+                        textures.push(parseInt(st) - 1);
+                        break;
+                    case 2:
+                        normals.push(parseInt(st) - 1);
+                        break;
+                }
+            });
+        });
+
+        if (vertices.length == 4) {
+            concatQuadrilateralIndices(model.indices,  vertices);
+            concatQuadrilateralIndices(model.text_idx, textures);
+            concatQuadrilateralIndices(model.norm_idx,  normals);
+            model.numPoints += 6;
+        }
+        else {
+            concatTriangleIndices(model.indices,  vertices);
+            concatTriangleIndices(model.text_idx, textures);
+            concatTriangleIndices(model.norm_idx,  normals);
+            model.numPoints += 3;
+        }
+    }
+
+
     function normalizeLength() {
         var max   = model.vertices.reduce((a, b) => {return Math.max(a, b);});
         var min   = model.vertices.reduce((a, b) => {return Math.min(a, b);});
@@ -76,6 +106,10 @@ function parserObjFile(file, normalize = false) {
     var model = {
         vertices : [],
         indices  : [],
+        norm_idx : [],
+        text_idx : [],
+        texture  : [],
+        normal   : [],
         numPoints: 0
     };
 
@@ -89,6 +123,10 @@ function parserObjFile(file, normalize = false) {
 
             if (first_token == "v")
                 model.vertices = model.vertices.concat(parseVertex(temp_line));
+            else if (first_token == "vt")
+                model.texture  = model.texture.concat(parseTexture(temp_line));
+            else if (first_token == "vn")
+                model.normal   = model.normal.concat(parseNormal(temp_line));
             else if (first_token == "f")
                 parseSurface(temp_line);
 
