@@ -5,7 +5,7 @@ function shaderCreator(gl, type, source) {
     if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) {
         throw new Error(gl.getShaderInfoLog(shader))
     }
-    return shader
+    return shader;
 }
 
 function createProgram(gl, vertexShader, fragmentShader) {
@@ -16,7 +16,7 @@ function createProgram(gl, vertexShader, fragmentShader) {
     if (!gl.getProgramParameter(program, gl.LINK_STATUS)) {
         throw new Error(gl.getProgramInfoLog(program))
     }
-    return program
+    return program;
 }
 
 function webglCreateShaderProgram(gl, vShaderID, fShaderID) {

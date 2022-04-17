@@ -1,5 +1,4 @@
 // IF3260 Grafika Komputer - Tugas Besar 3
-
 var state;
 var mouse_state = {
     dragging: false,
@@ -20,56 +19,10 @@ var mouse_state = {
     }
 }
 
-
-function setDefaultState() {
-    state = {
-        model: parserObjFile(cube_obj, true),
-
-        transformation: {
-            translation: [0, 0, 0],
-            rotation   : [0, 0, Math.PI / 180 * 30],
-            scale      : [1, 1, 1],
-            mouseRot   : [0, 0]
-        },
-
-        view: {
-            rotation: 60,
-            radius  : 0.1,
-        },
-
-        useLight      : true,
-        projectionType: "orth", // orth, obli, pers
-        pickedColor   : [1.0, 0.5, 0.0, 1.0],
-        idleAnimation : true,
-
-        timeoutIdle   : true,
-    };
-}
-
-function computeTransformMatrix() {
-    var transformMatrix;
-    var translation = state.transformation.translation;
-    var scale       = state.transformation.scale;
-    var rotation    = state.transformation.rotation;
-
-    transformMatrix = scaleMatrix(scale[0], scale[1], scale[2]);
-    transformMatrix = matrixMult(rotationMatrix(rotation[0], rotation[1], rotation[2]), transformMatrix);
-    transformMatrix = matrixMult(translationMatrix(translation[0], translation[1], translation[2]), transformMatrix);
-    return transformMatrix;
-}
-
-function computeViewMatrix() {
-    var viewMatrix;
-    viewMatrix = rotationMatrix(0, state.view.rotation * Math.PI / 180, 0);
-    viewMatrix = matrixMult(viewMatrix, translationMatrix(0, 0, state.view.radius));
-    return m4.inverse(viewMatrix);
-}
-
 function main() {
     // Set state and event listener
     setUIEventListener();
-    setDefaultState();
-    // document.getElementById("reset").click(); // Reset everything to default state
+    document.getElementById("reset").click(); // Reset everything to default state
 
     var transformMatrix;
     var cameraMatrix;
@@ -177,6 +130,29 @@ function main() {
 }
 
 
+
+
+
+// -------------------- Utilities --------------------
+function computeTransformMatrix() {
+    var transformMatrix;
+    var translation = state.transformation.translation;
+    var scale       = state.transformation.scale;
+    var rotation    = state.transformation.rotation;
+
+    transformMatrix = scaleMatrix(scale[0], scale[1], scale[2]);
+    transformMatrix = matrixMult(rotationMatrix(rotation[0], rotation[1], rotation[2]), transformMatrix);
+    transformMatrix = matrixMult(translationMatrix(translation[0], translation[1], translation[2]), transformMatrix);
+    return transformMatrix;
+}
+
+function computeViewMatrix() {
+    var viewMatrix;
+    viewMatrix = rotationMatrix(0, state.view.rotation * Math.PI / 180, 0);
+    viewMatrix = matrixMult(viewMatrix, translationMatrix(0, 0, state.view.radius));
+    return matrixInverse(viewMatrix);
+}
+
 function setUIEventListener() {
     // -------------------- Model & Projection --------------------
     function callbackFile(e) {
@@ -255,6 +231,35 @@ function setUIEventListener() {
 
     document.getElementById("shading").addEventListener('change', callbackShading, false);
 
+    function resetCallback() {
+        state = {
+            model: parserObjFile(cube_obj, true),
+
+            transformation: {
+                translation: [0, 0, 0],
+                rotation   : [0, 0, Math.PI / 180 * 30],
+                scale      : [1, 1, 1],
+                mouseRot   : [0, 0]
+            },
+
+            view: {
+                rotation: 60,
+                radius  : 0.1,
+            },
+
+            useLight      : true,
+            projectionType: "orth", // orth, obli, pers
+            pickedColor   : [1.0, 0.5, 0.0, 1.0],
+            idleAnimation : true,
+
+            timeoutIdle   : true,
+        };
+    }
+
+    document.getElementById("reset").addEventListener("click", () => {
+        resetCallback();
+    });
+
     function callbackMouseDown(e) {
         mouse_state.dragging = true;
         mouse_state.origin.x = e.pageX;
@@ -288,5 +293,9 @@ function setUIEventListener() {
     document.getElementById('canvas').addEventListener("mouseout", callbackMouseUp, false);
     document.getElementById('canvas').addEventListener("mousemove", callbackMouseMove, false);
 }
+
+
+
+
 
 window.onload = main();

@@ -46,13 +46,23 @@
                     <label for="shading">Shading: </label>
                     <input type="checkbox" id="shading" name="shading" value="shading" checked>
                 </div>
+                <div>
+                    <input type="reset" id="reset" name="reset" value="Reset">
+                </div>
                 <br>
+
 
             </form>
         </div>
     </div>
     <br>
 </body>
+
+
+
+
+
+
 
 <script id="vertex-shader-3d" type="x-shader/x-vertex">
     attribute vec3 coordinates;
@@ -75,6 +85,8 @@
     }
 </script>
 
+
+
 <script id="fragment-shader-3d-light" type="x-shader/x-fragment">
     precision mediump float;
     uniform vec3 userColor;
@@ -95,11 +107,16 @@
     }
 </script>
 
-<script src="scripts/math.js"></script>
-<script src="scripts/utils.js"></script>
-<script src="scripts/model.js"></script>
+
+
+
+
+
+
+<script src="scripts/math-utils.js"></script>
+<script src="scripts/gl-utils.js"></script>
+<script src="scripts/model-utils.js"></script>
 <script src="scripts/builtin-obj-models.js"></script>
-<script src="scripts/matUtils.js"></script>
 <script src="scripts/script.js"></script>
 
 </html>
