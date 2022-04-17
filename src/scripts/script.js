@@ -26,23 +26,23 @@ function main() {
 
     // -- Create buffer & pointer --
     var vertexBuffer = gl.createBuffer();
+    var normBuffer   = gl.createBuffer();
     var indexBuffer  = gl.createBuffer();
-
-    gl.bindBuffer(gl.ARRAY_BUFFER, vertexBuffer);
     gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, indexBuffer);
 
     var lightCoordLoc  = gl.getAttribLocation(lightingShaderProgram, "coordinates");
+    var lightNormLoc   = gl.getAttribLocation(lightingShaderProgram, "a_normal");
     var lightTrMatLoc  = gl.getUniformLocation(lightingShaderProgram, "transformationMatrix");
     var lightColorLoc  = gl.getUniformLocation(lightingShaderProgram, "userColor");
     var lightPrjMatLoc = gl.getUniformLocation(lightingShaderProgram, "uProjectionMatrix");
     var lightFudgeLoc  = gl.getUniformLocation(lightingShaderProgram, "fudgeFactor");
 
     var flatCoordLoc  = gl.getAttribLocation(flatShaderProgram, "coordinates");
+    var flatNormLoc   = gl.getAttribLocation(flatShaderProgram, "a_normal");
     var flatTrMatLoc  = gl.getUniformLocation(flatShaderProgram, "transformationMatrix");
     var flatColorLoc  = gl.getUniformLocation(flatShaderProgram, "userColor");
     var flatPrjMatLoc = gl.getUniformLocation(flatShaderProgram, "uProjectionMatrix");
     var flatFudgeLoc  = gl.getUniformLocation(flatShaderProgram, "fudgeFactor");
-
     window.requestAnimationFrame(render);
 
 
@@ -69,6 +69,7 @@ function main() {
         if (state.useLight) {
             var shaderProgram = lightingShaderProgram;
             var coordLoc      = lightCoordLoc;
+            var normLoc       = lightNormLoc;
             var trMatLoc      = lightTrMatLoc;
             var colorLoc      = lightColorLoc;
             var projLoc       = lightPrjMatLoc;
@@ -77,6 +78,7 @@ function main() {
         else {
             var shaderProgram = flatShaderProgram;
             var coordLoc      = flatCoordLoc;
+            var normLoc       = flatNormLoc;
             var trMatLoc      = flatTrMatLoc;
             var colorLoc      = flatColorLoc;
             var projLoc       = flatPrjMatLoc;
@@ -89,8 +91,17 @@ function main() {
         gl.enable(gl.CULL_FACE);
 
         gl.useProgram(shaderProgram);
-        gl.vertexAttribPointer(coordLoc, 3, gl.FLOAT, false, 0, 0);
+
         gl.enableVertexAttribArray(coordLoc);
+        gl.bindBuffer(gl.ARRAY_BUFFER, vertexBuffer);
+        gl.vertexAttribPointer(coordLoc, 3, gl.FLOAT, false, 0, 0);
+        gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(state.model.vertices), gl.STATIC_DRAW);
+
+        // gl.enableVertexAttribArray(normLoc);
+        // gl.bindBuffer(gl.ARRAY_BUFFER, normBuffer);
+        // gl.vertexAttribPointer(normLoc, 3, gl.FLOAT, false, 0, 0);
+        // gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(state.model.vertices), gl.STATIC_DRAW);
+
         gl.uniformMatrix4fv(trMatLoc, false, new Float32Array(transformMatrix));
         gl.uniform3f(colorLoc, state.pickedColor[0], state.pickedColor[1], state.pickedColor[2]);
 
@@ -103,7 +114,6 @@ function main() {
         gl.uniformMatrix4fv(projLoc, false, viewProjectionMat);
 
         // Bind vertices and indices
-        gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(state.model.vertices), gl.STATIC_DRAW);
         gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint16Array(state.model.indices), gl.STATIC_DRAW);
 
         // Draw
@@ -149,7 +159,7 @@ function setUIEventListener() {
         reader.onload = function (e) {
             state.model = parserObjFile(e.target.result, true);
         };
-        
+
         reader.readAsText(file);
     }
 
