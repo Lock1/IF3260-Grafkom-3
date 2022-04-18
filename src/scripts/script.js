@@ -45,27 +45,13 @@ function main() {
     var flatFudgeLoc  = gl.getUniformLocation(flatShaderProgram, "fudgeFactor");
     window.requestAnimationFrame(render);
 
+    function drawArticulatedModel(model, parentView=computeViewMatrix()) {
 
 
-    function render() {
-        transformMatrix = computeTransformMatrix();
+        var view_stack = [];
+    }
 
-        if (!mouse_state.dragging) {
-            mouse_state.delta.x *= 0.95;
-            mouse_state.delta.y *= 0.95;
-            state.transformation.rotation[1] -= mouse_state.delta.x;
-            state.transformation.rotation[0] -= mouse_state.delta.y;
-        }
-
-        const rotX = document.getElementById("rotasiX");
-        const rotY = document.getElementById("rotasiY");
-
-        if (state.transformation.rotation[0] > Math.PI)
-            state.transformation.rotation[0] = -Math.PI;
-
-        if (state.transformation.rotation[1] > Math.PI)
-            state.transformation.rotation[1] = -Math.PI;
-
+    function drawModel(model, viewMatrix) {
         if (state.useLight) {
             var shaderProgram = lightingShaderProgram;
             var coordLoc      = lightCoordLoc;
@@ -85,22 +71,15 @@ function main() {
             var fudgeLoc      = flatFudgeLoc;
         }
 
-        gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
-        gl.clearColor(0.0, 0.0, 0.0, 1.0);
-        gl.enable(gl.DEPTH_TEST);
-        gl.enable(gl.CULL_FACE);
-
-        gl.useProgram(shaderProgram);
-
         gl.enableVertexAttribArray(coordLoc);
         gl.bindBuffer(gl.ARRAY_BUFFER, vertexBuffer);
         gl.vertexAttribPointer(coordLoc, 3, gl.FLOAT, false, 0, 0);
-        gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(state.model.vertices), gl.STATIC_DRAW);
+        gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(model.vertices), gl.STATIC_DRAW);
 
         // gl.enableVertexAttribArray(normLoc);
         // gl.bindBuffer(gl.ARRAY_BUFFER, normBuffer);
         // gl.vertexAttribPointer(normLoc, 3, gl.FLOAT, false, 0, 0);
-        // gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(state.model.vertices), gl.STATIC_DRAW);
+        // gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(model.vertices), gl.STATIC_DRAW);
 
         gl.uniformMatrix4fv(trMatLoc, false, new Float32Array(transformMatrix));
         gl.uniform3f(colorLoc, state.pickedColor[0], state.pickedColor[1], state.pickedColor[2]);
@@ -110,14 +89,46 @@ function main() {
         else
             gl.uniform1f(fudgeLoc, 0);
 
-        var viewProjectionMat = matrixMult(projectionMatrix(state.projectionType), computeViewMatrix());
-        gl.uniformMatrix4fv(projLoc, false, viewProjectionMat);
+        gl.uniformMatrix4fv(projLoc, false, viewMatrix);
 
         // Bind vertices and indices
-        gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint16Array(state.model.indices), gl.STATIC_DRAW);
+        gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint16Array(model.indices), gl.STATIC_DRAW);
 
         // Draw
-        gl.drawElements(gl.TRIANGLES, state.model.numPoints, gl.UNSIGNED_SHORT, 0);
+        gl.drawElements(gl.TRIANGLES, model.numPoints, gl.UNSIGNED_SHORT, 0);
+    }
+
+    function render() {
+        transformMatrix = computeTransformMatrix();
+
+        if (!mouse_state.dragging) {
+            mouse_state.delta.x *= 0.95;
+            mouse_state.delta.y *= 0.95;
+            state.transformation.rotation[1] -= mouse_state.delta.x;
+            state.transformation.rotation[0] -= mouse_state.delta.y;
+        }
+
+        if (state.transformation.rotation[0] > Math.PI)
+            state.transformation.rotation[0] = -Math.PI;
+
+        if (state.transformation.rotation[1] > Math.PI)
+            state.transformation.rotation[1] = -Math.PI;
+
+        if (state.useLight)
+            var shaderProgram = lightingShaderProgram;
+        else
+            var shaderProgram = flatShaderProgram;
+
+        gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+        gl.clearColor(0.0, 0.0, 0.0, 1.0);
+        gl.enable(gl.DEPTH_TEST);
+        gl.enable(gl.CULL_FACE);
+
+        gl.useProgram(shaderProgram);
+        var viewMatrix = matrixMult(projectionMatrix(state.projectionType), computeViewMatrix());
+        drawModel(parserObjFile(simple_cube_obj, true), viewMatrix);
+        drawModel(parserObjFile(simple_cube_obj, true), matrixMult(viewMatrix, translationMatrix(0.5, 1.5, 0.2)));
+
         window.requestAnimationFrame(render);
     }
 }
@@ -226,7 +237,6 @@ function setUIEventListener() {
     document.getElementById("shading").addEventListener('change', callbackShading, false);
 
     function resetCallback() {
-        // parserObjFile(cube_obj, true),
         state = {
             model: parserObjFile(simple_cube_obj, true),
 
@@ -239,7 +249,7 @@ function setUIEventListener() {
 
             view: {
                 rotation: 60,
-                radius  : 0.1,
+                radius  : 0.0,
             },
 
             useLight      : true,

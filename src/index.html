@@ -67,12 +67,12 @@
 <script id="vertex-shader-3d" type="x-shader/x-vertex">
     attribute vec3 coordinates;
     attribute vec3 a_normal;
-    uniform float fudgeFactor;
-
     uniform mat4 transformationMatrix;
-    uniform mat4 uProjectionMatrix;
-    varying float colorFactor;
 
+    uniform float fudgeFactor;
+    uniform mat4 uProjectionMatrix;
+
+    varying float colorFactor;
     varying vec3 normal;
     varying vec3 surface;
 
@@ -134,10 +134,11 @@
 
 
 
-<script src="scripts/math-util.js"></script>
-<script src="scripts/gl-util.js"></script>
 <script src="scripts/model-util.js"></script>
 <script src="scripts/builtin-model.js"></script>
+<script src="scripts/math-util.js"></script>
+<script src="scripts/gl-util.js"></script>
+<script src="scripts/builtin-arti-model.js"></script>
 <script src="scripts/script.js"></script>
 
 </html>

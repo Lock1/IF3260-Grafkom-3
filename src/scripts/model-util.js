@@ -1,12 +1,29 @@
+// Helper function
+function concatQuadrilateralIndices(target, arr) {
+    target.push(arr[0]); target.push(arr[1]); target.push(arr[2]);
+    target.push(arr[2]); target.push(arr[3]); target.push(arr[0]);
+}
+
+function concatTriangleIndices(target, arr) {
+    target.push(arr[0]); target.push(arr[1]); target.push(arr[2]);
+}
+
+// function createCube(a, b, c) {
+//     var model = {
+//         vertices : [],
+//         indices  : [],
+//         norm_idx : [],
+//         text_idx : [],
+//         texture  : [],
+//         normal   : [],
+//         numPoints: 0
+//     };
+//
+// }
+
+
+
 function parserObjFile(file, normalize = false) {
-    // Internal helper function
-    function concatQuadrilateralIndices(target, arr) {
-        target.push(arr[0]); target.push(arr[1]); target.push(arr[2]);
-        target.push(arr[2]); target.push(arr[3]); target.push(arr[0]);
-    }
-    function concatTriangleIndices(target, arr) {
-        target.push(arr[0]); target.push(arr[1]); target.push(arr[2]);
-    }
 
     // Parser helper function
     function getFirstToken(str) {
