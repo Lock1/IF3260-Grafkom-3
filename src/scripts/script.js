@@ -2,6 +2,8 @@
 var state;
 var mouse_state;
 
+var timer_test = 0.0;
+
 function main() {
     // Set state and event listener
     setUIEventListener();
@@ -45,13 +47,16 @@ function main() {
     var flatFudgeLoc  = gl.getUniformLocation(flatShaderProgram, "fudgeFactor");
     window.requestAnimationFrame(render);
 
-    function drawArticulatedModel(model, parentView=computeViewMatrix()) {
+    function drawArticulatedModel(tree_model, parentView=identityMatrix()) {
+        var currentView = matrixMult(parentView, tree_model.view);
+        drawModel(tree_model.model, tree_model.transform, currentView);
 
-
-        var view_stack = [];
+        tree_model.child.forEach((item, i) => {
+            drawArticulatedModel(item, tree_model.view);
+        });
     }
 
-    function drawModel(model, viewMatrix) {
+    function drawModel(model, transMatrix, viewMatrix) {
         if (state.useLight) {
             var shaderProgram = lightingShaderProgram;
             var coordLoc      = lightCoordLoc;
@@ -81,7 +86,10 @@ function main() {
         // gl.vertexAttribPointer(normLoc, 3, gl.FLOAT, false, 0, 0);
         // gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(model.vertices), gl.STATIC_DRAW);
 
-        gl.uniformMatrix4fv(trMatLoc, false, new Float32Array(transformMatrix));
+        if (!transMatrix)
+            gl.uniformMatrix4fv(trMatLoc, false, new Float32Array(translationMatrix(0.0, 0.0, 0.0)));
+        else
+            gl.uniformMatrix4fv(trMatLoc, false, new Float32Array(transMatrix));
         gl.uniform3f(colorLoc, state.pickedColor[0], state.pickedColor[1], state.pickedColor[2]);
 
         if (state.projectionType === "pers")
@@ -99,6 +107,7 @@ function main() {
     }
 
     function render() {
+        timer_test = (timer_test + 0.01) % 10;
         transformMatrix = computeTransformMatrix();
 
         if (!mouse_state.dragging) {
@@ -126,8 +135,12 @@ function main() {
 
         gl.useProgram(shaderProgram);
         var viewMatrix = matrixMult(projectionMatrix(state.projectionType), computeViewMatrix());
-        drawModel(parserObjFile(simple_cube_obj, true), viewMatrix);
-        drawModel(parserObjFile(simple_cube_obj, true), matrixMult(viewMatrix, translationMatrix(0.5, 1.5, 0.2)));
+
+        box1.transform           = rotationMatrix(timer_test, 0, 0);
+        box2.transform           = rotationMatrix(0, timer_test, 0);
+        articulated_model_1.view = rotationMatrix(0, 0, timer_test);
+
+        drawArticulatedModel(articulated_model_1);
 
         window.requestAnimationFrame(render);
     }

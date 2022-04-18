@@ -8,7 +8,7 @@ function concatTriangleIndices(target, arr) {
     target.push(arr[0]); target.push(arr[1]); target.push(arr[2]);
 }
 
-// function createCube(a, b, c) {
+// function createBox(vp, vn, vs) {
 //     var model = {
 //         vertices : [],
 //         indices  : [],
@@ -18,13 +18,11 @@ function concatTriangleIndices(target, arr) {
 //         normal   : [],
 //         numPoints: 0
 //     };
-//
 // }
 
 
 
 function parserObjFile(file, normalize = false) {
-
     // Parser helper function
     function getFirstToken(str) {
         var token = "";

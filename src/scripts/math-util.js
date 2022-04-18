@@ -1,3 +1,12 @@
+function identityMatrix() {
+    return [
+      1, 0, 0, 0,
+      0, 1, 0, 0,
+      0, 0, 1, 0,
+      0, 0, 0, 1
+    ];
+}
+
 function matrixMult(m1, m2) {
     // m1 and m2 is 4x4 matrix
     var m3 = [];
