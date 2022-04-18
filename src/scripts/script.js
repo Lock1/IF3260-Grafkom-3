@@ -81,10 +81,10 @@ function main() {
         gl.vertexAttribPointer(coordLoc, 3, gl.FLOAT, false, 0, 0);
         gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(model.vertices), gl.STATIC_DRAW);
 
-        // gl.enableVertexAttribArray(normLoc);
-        // gl.bindBuffer(gl.ARRAY_BUFFER, normBuffer);
-        // gl.vertexAttribPointer(normLoc, 3, gl.FLOAT, false, 0, 0);
-        // gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(model.vertices), gl.STATIC_DRAW);
+        gl.enableVertexAttribArray(normLoc);
+        gl.bindBuffer(gl.ARRAY_BUFFER, normBuffer);
+        gl.vertexAttribPointer(normLoc, 3, gl.FLOAT, false, 0, 0);
+        gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(model.vertices), gl.STATIC_DRAW);
 
         if (!transMatrix)
             gl.uniformMatrix4fv(trMatLoc, false, new Float32Array(translationMatrix(0.0, 0.0, 0.0)));
