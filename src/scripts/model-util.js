@@ -97,13 +97,11 @@ function parserObjFile(file, normalize = false) {
             concatQuadrilateralIndices(model.indices,  vertices);
             concatQuadrilateralIndices(model.text_idx, textures);
             concatQuadrilateralIndices(model.norm_idx,  normals);
-            model.numPoints += 6;
         }
         else {
             concatTriangleIndices(model.indices,  vertices);
             concatTriangleIndices(model.text_idx, textures);
             concatTriangleIndices(model.norm_idx,  normals);
-            model.numPoints += 3;
         }
     }
 
@@ -145,7 +143,6 @@ function parserObjFile(file, normalize = false) {
         f_vert   : [],
         f_text   : [],
         f_norm   : [],
-        numPoints: 0
     };
 
     var temp_line = "";

@@ -35,6 +35,7 @@ function main() {
     var lightTrMatLoc  = gl.getUniformLocation(lightingShaderProgram, "transformationMatrix");
     var lightColorLoc  = gl.getUniformLocation(lightingShaderProgram, "userColor");
     var lightPrjMatLoc = gl.getUniformLocation(lightingShaderProgram, "uProjectionMatrix");
+    var lightLightCoor = gl.getUniformLocation(lightingShaderProgram, "lightCoordinate");
     var lightFudgeLoc  = gl.getUniformLocation(lightingShaderProgram, "fudgeFactor");
 
     var flatCoordLoc  = gl.getAttribLocation(flatShaderProgram, "coordinates");
@@ -42,6 +43,7 @@ function main() {
     var flatTrMatLoc  = gl.getUniformLocation(flatShaderProgram, "transformationMatrix");
     var flatColorLoc  = gl.getUniformLocation(flatShaderProgram, "userColor");
     var flatPrjMatLoc = gl.getUniformLocation(flatShaderProgram, "uProjectionMatrix");
+    var flatLightCoor = gl.getUniformLocation(flatShaderProgram, "lightCoordinate");
     var flatFudgeLoc  = gl.getUniformLocation(flatShaderProgram, "fudgeFactor");
     window.requestAnimationFrame(render);
 
@@ -49,11 +51,10 @@ function main() {
         var currentView = matrixMult(parentView, tree_model.view);
         drawModel(tree_model.model, tree_model.transform, currentView);
 
-        tree_model.child.forEach((item, i) => {
+        tree_model.child.forEach((item) => {
             drawArticulatedModel(item, currentView);
         });
     }
-    console.log(articulated_model_1)
 
     function drawModel(model, transMatrix, viewMatrix) {
         if (state.useLight) {
@@ -63,6 +64,7 @@ function main() {
             var trMatLoc      = lightTrMatLoc;
             var colorLoc      = lightColorLoc;
             var projLoc       = lightPrjMatLoc;
+            var lightLoc      = lightLightCoor;
             var fudgeLoc      = lightFudgeLoc;
         }
         else {
@@ -72,6 +74,7 @@ function main() {
             var trMatLoc      = flatTrMatLoc;
             var colorLoc      = flatColorLoc;
             var projLoc       = flatPrjMatLoc;
+            var lightLoc      = flatLightCoor;
             var fudgeLoc      = flatFudgeLoc;
         }
 
@@ -85,11 +88,9 @@ function main() {
         gl.vertexAttribPointer(normLoc, 3, gl.FLOAT, false, 0, 0);
         gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(model.f_norm), gl.STATIC_DRAW);
 
-        if (!transMatrix)
-            gl.uniformMatrix4fv(trMatLoc, false, new Float32Array(translationMatrix(0.0, 0.0, 0.0)));
-        else
-            gl.uniformMatrix4fv(trMatLoc, false, new Float32Array(transMatrix));
+        gl.uniformMatrix4fv(trMatLoc, false, new Float32Array(transMatrix));
         gl.uniform3f(colorLoc, state.pickedColor[0], state.pickedColor[1], state.pickedColor[2]);
+        gl.uniform3f(lightLoc, state.lightLocation[0], state.lightLocation[1], state.lightLocation[2]);
 
         if (state.projectionType === "pers")
             gl.uniform1f(fudgeLoc, 1.275);
@@ -132,9 +133,7 @@ function main() {
         gl.useProgram(shaderProgram);
         var viewMatrix = matrixMult(projectionMatrix(state.projectionType), computeViewMatrix());
 
-        box1.transform           = rotationMatrix(0, 0, 0);
-        box2.transform           = rotationMatrix(0, 0, 0);
-        articulated_model_1.view = rotationMatrix(Math.PI * 0.5/3, 0, timer_test);
+        articulated_model_1.view = rotationMatrix(Math.PI * 0.2/3, timer_test, 0);
 
         drawArticulatedModel(articulated_model_1);
 
@@ -262,6 +261,7 @@ function setUIEventListener() {
             },
 
             useLight      : true,
+            lightLocation : [0.0, 0.0, 1.2],
             projectionType: "orth", // orth, obli, pers
             pickedColor   : [1.0, 0.5, 0.0, 1.0],
             idleAnimation : true,
