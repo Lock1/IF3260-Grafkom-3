@@ -2,8 +2,6 @@
 var state;
 var mouse_state;
 
-var timer_test = 0.0;
-
 function main() {
     // Set state and event listener
     setUIEventListener();
@@ -102,14 +100,12 @@ function main() {
         else
             gl.uniform1f(fudgeLoc, 0);
 
-
-
         // Draw
         gl.drawArrays(gl.TRIANGLES, 0, model.f_vert.length / 3);
     }
 
-    function render() {
-        timer_test = timer_test + 0.01;
+    function render(timestamp) {
+        let step = timestamp / 1000;
         transformMatrix = computeTransformMatrix();
 
         if (!mouse_state.dragging) {
@@ -138,12 +134,12 @@ function main() {
         gl.useProgram(shaderProgram);
         var viewMatrix = matrixMult(projectionMatrix(state.projectionType), computeViewMatrix());
 
-        articulated_model_1.child[2].transform = rotationMatrix(Math.sin(timer_test*5), 0, 0);
-        articulated_model_1.child[4].transform = rotationMatrix(Math.sin(timer_test*5), 0, 0);
-        articulated_model_1.child[1].transform = rotationMatrix(-Math.sin(timer_test*5), 0, 0);
-        articulated_model_1.child[3].transform = rotationMatrix(-Math.sin(timer_test*5), 0, 0);
+        if (state.useAnimation)
+            state.articulated_model.animation(step);
+        else
+            state.articulated_model.animation(0);
 
-        drawArticulatedModel(articulated_model_1, rotationMatrix(Math.PI * 0.2/3, timer_test, 0));
+        drawArticulatedModel(state.articulated_model, rotationMatrix(Math.PI * 0.4/3, Math.PI * 0.4/3, 0));
 
         window.requestAnimationFrame(render);
     }
@@ -193,14 +189,14 @@ function setUIEventListener() {
     function callbackModel(e) {
         var selectedModelRadio = document.querySelector("input[name='bentuk']:checked").value;
         switch (selectedModelRadio) {
-            case "tetrahedral":
-                state.model = parserObjFile(tetrahedral_obj, true);
+            case "Model 1":
+                state.articulated_model = articulated_model_1;
                 break;
-            case "cube":
-                state.model = parserObjFile(cube_obj, true);
+            case "Model 2":
+                state.articulated_model = articulated_model_2;
                 break;
-            case "icosahedron":
-                state.model = parserObjFile(icosahedron_obj, true);
+            case "Model 3":
+                state.articulated_model = articulated_model_3;
                 break;
         }
     }
@@ -210,9 +206,6 @@ function setUIEventListener() {
         switch (selectedModelRadio) {
             case "orthographic":
                 state.projectionType = "orth";
-                break;
-            case "oblique":
-                state.projectionType = "obli";
                 break;
             case "perspective":
                 state.projectionType = "pers";
@@ -249,12 +242,16 @@ function setUIEventListener() {
     function callbackShading(e) {
         state.useLight = document.querySelector("#shading").checked;
     }
+    function callbackAnimation(e) {
+        state.useAnimation = document.querySelector("#animation").checked;
+    }
 
     document.getElementById("shading").addEventListener('change', callbackShading, false);
+    document.getElementById("animation").addEventListener('change', callbackAnimation, false);
 
     function resetCallback() {
         state = {
-            model: parserObjFile(simple_cube_obj, true),
+            articulated_model: articulated_model_1,
 
             transformation: {
                 translation: [0, 0, 0],
@@ -272,9 +269,8 @@ function setUIEventListener() {
             lightLocation : [0.0, 0.0, 1.2],
             projectionType: "orth", // orth, obli, pers
             pickedColor   : [1.0, 0.5, 0.0, 1.0],
-            idleAnimation : true,
 
-            timeoutIdle   : true,
+            useAnimation  : true,
         };
 
         mouse_state = {
