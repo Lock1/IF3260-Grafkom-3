@@ -198,6 +198,9 @@ function setUIEventListener() {
             case "Model 3":
                 state.articulated_model = articulated_model_3;
                 break;
+            case "Dog":
+                state.articulated_model = articulated_model_4;
+                break;
         }
     }
 
