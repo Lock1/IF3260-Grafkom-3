@@ -48,11 +48,10 @@ function main() {
     window.requestAnimationFrame(render);
 
     function drawArticulatedModel(tree_model, parentView=identityMatrix()) {
-        var currentView = matrixMult(parentView, tree_model.view);
-        drawModel(tree_model.model, tree_model.transform, currentView);
+        drawModel(tree_model.model, tree_model.transform, parentView);
 
         tree_model.child.forEach((item) => {
-            drawArticulatedModel(item, currentView);
+            drawArticulatedModel(item[0], matrixMult(parentView, item[1]));
         });
     }
 
@@ -133,9 +132,7 @@ function main() {
         gl.useProgram(shaderProgram);
         var viewMatrix = matrixMult(projectionMatrix(state.projectionType), computeViewMatrix());
 
-        articulated_model_1.view = rotationMatrix(Math.PI * 0.2/3, timer_test, 0);
-
-        drawArticulatedModel(articulated_model_1);
+        drawArticulatedModel(articulated_model_1, rotationMatrix(Math.PI * 0.2/3, timer_test, 0));
 
         window.requestAnimationFrame(render);
     }
