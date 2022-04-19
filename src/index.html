@@ -71,6 +71,7 @@
     uniform mat4 transformationMatrix;
     uniform float fudgeFactor;
     uniform mat4 uProjectionMatrix;
+    uniform mat4 uProjTransMatrix;
     uniform vec3 lightCoordinate;
 
     varying float colorFactor;
@@ -86,8 +87,8 @@
 
         // -- Light --
         // Using normal
-        normal              = (uProjectionMatrix * transformationMatrix * vec4(a_normal, 1.0)).xyz;
         // normal              = (transformationMatrix * vec4(a_normal, 1.0)).xyz;
+        normal              = (uProjTransMatrix * transformationMatrix * vec4(a_normal, 1.0)).xyz;
         surface             = lightCoordinate - vec3(location);
 
         // Simple z-directional

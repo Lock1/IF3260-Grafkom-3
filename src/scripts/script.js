@@ -35,6 +35,7 @@ function main() {
     var lightTrMatLoc  = gl.getUniformLocation(lightingShaderProgram, "transformationMatrix");
     var lightColorLoc  = gl.getUniformLocation(lightingShaderProgram, "userColor");
     var lightPrjMatLoc = gl.getUniformLocation(lightingShaderProgram, "uProjectionMatrix");
+    var lightPrjTrsLoc = gl.getUniformLocation(lightingShaderProgram, "uProjTransMatrix");
     var lightLightCoor = gl.getUniformLocation(lightingShaderProgram, "lightCoordinate");
     var lightFudgeLoc  = gl.getUniformLocation(lightingShaderProgram, "fudgeFactor");
 
@@ -43,6 +44,7 @@ function main() {
     var flatTrMatLoc  = gl.getUniformLocation(flatShaderProgram, "transformationMatrix");
     var flatColorLoc  = gl.getUniformLocation(flatShaderProgram, "userColor");
     var flatPrjMatLoc = gl.getUniformLocation(flatShaderProgram, "uProjectionMatrix");
+    var flatPrjTrsLoc = gl.getUniformLocation(flatShaderProgram, "uProjTransMatrix");
     var flatLightCoor = gl.getUniformLocation(flatShaderProgram, "lightCoordinate");
     var flatFudgeLoc  = gl.getUniformLocation(flatShaderProgram, "fudgeFactor");
     window.requestAnimationFrame(render);
@@ -63,6 +65,7 @@ function main() {
             var trMatLoc      = lightTrMatLoc;
             var colorLoc      = lightColorLoc;
             var projLoc       = lightPrjMatLoc;
+            var projTrsLoc    = lightPrjTrsLoc;
             var lightLoc      = lightLightCoor;
             var fudgeLoc      = lightFudgeLoc;
         }
@@ -73,6 +76,7 @@ function main() {
             var trMatLoc      = flatTrMatLoc;
             var colorLoc      = flatColorLoc;
             var projLoc       = flatPrjMatLoc;
+            var projTrsLoc    = flatPrjTrsLoc;
             var lightLoc      = flatLightCoor;
             var fudgeLoc      = flatFudgeLoc;
         }
@@ -88,6 +92,8 @@ function main() {
         gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(model.f_norm), gl.STATIC_DRAW);
 
         gl.uniformMatrix4fv(trMatLoc, false, new Float32Array(transMatrix));
+        gl.uniformMatrix4fv(projLoc, false, viewMatrix);
+        gl.uniformMatrix4fv(projTrsLoc, false, transposeMatrix(viewMatrix));
         gl.uniform3f(colorLoc, state.pickedColor[0], state.pickedColor[1], state.pickedColor[2]);
         gl.uniform3f(lightLoc, state.lightLocation[0], state.lightLocation[1], state.lightLocation[2]);
 
@@ -96,7 +102,7 @@ function main() {
         else
             gl.uniform1f(fudgeLoc, 0);
 
-        gl.uniformMatrix4fv(projLoc, false, viewMatrix);
+
 
         // Draw
         gl.drawArrays(gl.TRIANGLES, 0, model.f_vert.length / 3);
