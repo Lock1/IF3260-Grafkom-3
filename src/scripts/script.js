@@ -48,10 +48,10 @@ function main() {
     window.requestAnimationFrame(render);
 
     function drawArticulatedModel(tree_model, parentView=identityMatrix()) {
-        drawModel(tree_model.model, tree_model.transform, parentView);
+        drawModel(tree_model.model, tree_model.view, parentView);
 
-        tree_model.child.forEach((item) => {
-            drawArticulatedModel(item[0], matrixMult(parentView, item[1]));
+        tree_model.child.forEach((child) => {
+            drawArticulatedModel(child.model, matrixMult(parentView, matrixMult(child.view, child.transform)));
         });
     }
 
@@ -103,7 +103,7 @@ function main() {
     }
 
     function render() {
-        timer_test = (timer_test + 0.01) % 10;
+        timer_test = timer_test + 0.01;
         transformMatrix = computeTransformMatrix();
 
         if (!mouse_state.dragging) {
@@ -131,6 +131,11 @@ function main() {
 
         gl.useProgram(shaderProgram);
         var viewMatrix = matrixMult(projectionMatrix(state.projectionType), computeViewMatrix());
+
+        articulated_model_1.child[2].transform = rotationMatrix(Math.sin(timer_test*5), 0, 0);
+        articulated_model_1.child[4].transform = rotationMatrix(Math.sin(timer_test*5), 0, 0);
+        articulated_model_1.child[1].transform = rotationMatrix(-Math.sin(timer_test*5), 0, 0);
+        articulated_model_1.child[3].transform = rotationMatrix(-Math.sin(timer_test*5), 0, 0);
 
         drawArticulatedModel(articulated_model_1, rotationMatrix(Math.PI * 0.2/3, timer_test, 0));
 

@@ -86,8 +86,8 @@
 
         // -- Light --
         // Using normal
-        // normal              = (uProjectionMatrix * transformationMatrix * vec4(a_normal, 1.0)).xyz;
-        normal              = (transformationMatrix * vec4(a_normal, 1.0)).xyz;
+        normal              = (uProjectionMatrix * transformationMatrix * vec4(a_normal, 1.0)).xyz;
+        // normal              = (transformationMatrix * vec4(a_normal, 1.0)).xyz;
         surface             = lightCoordinate - vec3(location);
 
         // Simple z-directional
