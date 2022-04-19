@@ -120,11 +120,11 @@ function parserObjFile(file, normalize = false) {
 
     var model = {
         vertices : [],
+        texture  : [],
+        normal   : [],
         indices  : [],
         norm_idx : [],
         text_idx : [],
-        texture  : [],
-        normal   : [],
         numPoints: 0
     };
 

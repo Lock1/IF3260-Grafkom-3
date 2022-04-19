@@ -55,6 +55,7 @@ function main() {
             drawArticulatedModel(item, tree_model.view);
         });
     }
+    console.log(articulated_model_1)
 
     function drawModel(model, transMatrix, viewMatrix) {
         if (state.useLight) {
@@ -85,6 +86,7 @@ function main() {
         gl.bindBuffer(gl.ARRAY_BUFFER, normBuffer);
         gl.vertexAttribPointer(normLoc, 3, gl.FLOAT, false, 0, 0);
         gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(model.vertices), gl.STATIC_DRAW);
+        // FIXME : Binding normal 100% wrong
 
         if (!transMatrix)
             gl.uniformMatrix4fv(trMatLoc, false, new Float32Array(translationMatrix(0.0, 0.0, 0.0)));
@@ -103,6 +105,7 @@ function main() {
         gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint16Array(model.indices), gl.STATIC_DRAW);
 
         // Draw
+        // TODO : Change to draw array
         gl.drawElements(gl.TRIANGLES, model.numPoints, gl.UNSIGNED_SHORT, 0);
     }
 
@@ -137,7 +140,7 @@ function main() {
         var viewMatrix = matrixMult(projectionMatrix(state.projectionType), computeViewMatrix());
 
         box1.transform           = rotationMatrix(timer_test, 0, 0);
-        box2.transform           = rotationMatrix(0, timer_test, 0);
+        box2.transform           = rotationMatrix(0, 0, timer_test);
         articulated_model_1.view = rotationMatrix(0, 0, timer_test);
 
         drawArticulatedModel(articulated_model_1);

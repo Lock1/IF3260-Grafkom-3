@@ -85,10 +85,11 @@
 
         // -- Light --
         // Using normal
-        colorFactor         = dot(normalize(a_normal), vec3(1.0, 0.0, 0.0));
-        colorFactor         = max(colorFactor, 0.1);
-        normal              = vec3(uProjectionMatrix * transformationMatrix * vec4(a_normal, 1.0));
-        surface             = vec3(-1.0, 0.0, 0.0) - vec3(location);
+        // colorFactor         = dot(normalize(a_normal), vec3(0.0, 0.0, 1.0));
+        // colorFactor         = max(colorFactor, 0.1);
+        // normal              = a_normal;
+        normal              = (uProjectionMatrix * transformationMatrix * vec4(a_normal, 1.0)).xyz;
+        surface             = vec3(0.0, 0.0, 1.0) - vec3(location);
 
         // Simple z-directional
         // colorFactor         = max((1.0 - transformedPos.z) / 2.0, 0.2);
