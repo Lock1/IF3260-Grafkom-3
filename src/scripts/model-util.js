@@ -50,8 +50,8 @@ function parserObjFile(file, normalize = false) {
         var texture      = [];
 
         texture.push(parseFloat(raw_data_str));
-        raw_data_str = raw_data_str.substr(raw_data_str.indexOf(' '), raw_data_str.length);
         raw_data_str = raw_data_str.trim();
+        raw_data_str = raw_data_str.substr(raw_data_str.indexOf(' '), raw_data_str.length);
         texture.push(parseFloat(raw_data_str));
 
         return texture;
@@ -61,6 +61,7 @@ function parserObjFile(file, normalize = false) {
         var normal       = [];
 
         normal.push(parseFloat(raw_data_str));
+        raw_data_str = raw_data_str.trim();
         raw_data_str = raw_data_str.substr(raw_data_str.indexOf(' '), raw_data_str.length);
         normal.push(parseFloat(raw_data_str));
         raw_data_str = raw_data_str.trim();
@@ -107,15 +108,31 @@ function parserObjFile(file, normalize = false) {
     }
 
 
-    function normalizeLength() {
-        var max   = model.vertices.reduce((a, b) => {return Math.max(a, b);});
-        var min   = model.vertices.reduce((a, b) => {return Math.min(a, b);});
+    function normalizeLength(target) {
+        var max   = target.reduce((a, b) => {return Math.max(a, b);});
+        var min   = target.reduce((a, b) => {return Math.min(a, b);});
         var range = max - min;
 
-        model.vertices.forEach((item, i) => {
+        target.forEach((item, i) => {
             var normed = (item - min) / range;
-            model.vertices[i] = normed - 0.5;
+            target[i] = normed - 0.5;
         });
+    }
+
+    function flattenIndices(dst, src, indices, count_item) {
+        indices.forEach((item) => {
+            for (let i = 0; i < count_item; i++)
+                dst.push(src[3*item+i]);
+        });
+    }
+
+    function stripElements() {
+        delete model.vertices;
+        delete model.texture;
+        delete model.normal;
+        delete model.indices;
+        delete model.norm_idx;
+        delete model.text_idx;
     }
 
     var model = {
@@ -125,6 +142,9 @@ function parserObjFile(file, normalize = false) {
         indices  : [],
         norm_idx : [],
         text_idx : [],
+        f_vert   : [],
+        f_text   : [],
+        f_norm   : [],
         numPoints: 0
     };
 
@@ -149,7 +169,13 @@ function parserObjFile(file, normalize = false) {
         }
     }
 
+    flattenIndices(model.f_vert, model.vertices, model.indices, 3);
+    flattenIndices(model.f_text, model.texture, model.text_idx, 2);
+    flattenIndices(model.f_norm, model.normal,  model.norm_idx, 3);
+
+    stripElements();
+
     if (normalize)
-        normalizeLength();
+        normalizeLength(model.f_vert);
     return model;
 }

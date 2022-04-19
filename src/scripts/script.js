@@ -29,8 +29,6 @@ function main() {
     // -- Create buffer & pointer --
     var vertexBuffer = gl.createBuffer();
     var normBuffer   = gl.createBuffer();
-    var indexBuffer  = gl.createBuffer();
-    gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, indexBuffer);
 
     var lightCoordLoc  = gl.getAttribLocation(lightingShaderProgram, "coordinates");
     var lightNormLoc   = gl.getAttribLocation(lightingShaderProgram, "a_normal");
@@ -52,7 +50,7 @@ function main() {
         drawModel(tree_model.model, tree_model.transform, currentView);
 
         tree_model.child.forEach((item, i) => {
-            drawArticulatedModel(item, tree_model.view);
+            drawArticulatedModel(item, currentView);
         });
     }
     console.log(articulated_model_1)
@@ -80,13 +78,12 @@ function main() {
         gl.enableVertexAttribArray(coordLoc);
         gl.bindBuffer(gl.ARRAY_BUFFER, vertexBuffer);
         gl.vertexAttribPointer(coordLoc, 3, gl.FLOAT, false, 0, 0);
-        gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(model.vertices), gl.STATIC_DRAW);
+        gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(model.f_vert), gl.STATIC_DRAW);
 
         gl.enableVertexAttribArray(normLoc);
         gl.bindBuffer(gl.ARRAY_BUFFER, normBuffer);
         gl.vertexAttribPointer(normLoc, 3, gl.FLOAT, false, 0, 0);
-        gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(model.vertices), gl.STATIC_DRAW);
-        // FIXME : Binding normal 100% wrong
+        gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(model.f_norm), gl.STATIC_DRAW);
 
         if (!transMatrix)
             gl.uniformMatrix4fv(trMatLoc, false, new Float32Array(translationMatrix(0.0, 0.0, 0.0)));
@@ -101,12 +98,8 @@ function main() {
 
         gl.uniformMatrix4fv(projLoc, false, viewMatrix);
 
-        // Bind vertices and indices
-        gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint16Array(model.indices), gl.STATIC_DRAW);
-
         // Draw
-        // TODO : Change to draw array
-        gl.drawElements(gl.TRIANGLES, model.numPoints, gl.UNSIGNED_SHORT, 0);
+        gl.drawArrays(gl.TRIANGLES, 0, model.f_vert.length / 3);
     }
 
     function render() {
@@ -139,9 +132,9 @@ function main() {
         gl.useProgram(shaderProgram);
         var viewMatrix = matrixMult(projectionMatrix(state.projectionType), computeViewMatrix());
 
-        box1.transform           = rotationMatrix(timer_test, 0, 0);
-        box2.transform           = rotationMatrix(0, 0, timer_test);
-        articulated_model_1.view = rotationMatrix(0, 0, timer_test);
+        box1.transform           = rotationMatrix(0, 0, 0);
+        box2.transform           = rotationMatrix(0, 0, 0);
+        articulated_model_1.view = rotationMatrix(Math.PI * 0.5/3, 0, timer_test);
 
         drawArticulatedModel(articulated_model_1);
 
