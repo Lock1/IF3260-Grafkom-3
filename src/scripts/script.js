@@ -139,7 +139,7 @@ function main() {
         else
             state.articulated_model.animation(0);
 
-        drawArticulatedModel(state.articulated_model, rotationMatrix(Math.PI * 0.4/3, Math.PI * 0.4/3, 0));
+        drawArticulatedModel(state.articulated_model, viewMatrix);
 
         window.requestAnimationFrame(render);
     }
@@ -171,38 +171,25 @@ function computeViewMatrix() {
 
 function setUIEventListener() {
     // -------------------- Model & Projection --------------------
-    function callbackFile(e) {
-        var file = e.target.files[0];
-        if (!file) {
-            console.log("File not found");
-            return;
-        }
-
-        var reader = new FileReader();
-        reader.onload = function (e) {
-            state.model = parserObjFile(e.target.result, true);
-        };
-
-        reader.readAsText(file);
-    }
-
     function callbackModel(e) {
         var selectedModelRadio = document.querySelector("input[name='bentuk']:checked").value;
         switch (selectedModelRadio) {
             case "Model 1":
                 state.articulated_model = articulated_model_1;
                 break;
-            case "Model 2":
+            case "Dog":
                 state.articulated_model = articulated_model_2;
                 break;
             case "Model 3":
                 state.articulated_model = articulated_model_3;
                 break;
-            case "Dog":
-                state.articulated_model = articulated_model_4;
-                break;
+
         }
     }
+
+    document.forms["model"].elements["bentuk"].forEach((item, i) => {
+        item.onclick = callbackModel;
+    });
 
     function callbackProjection(e) {
         var selectedModelRadio = document.querySelector("input[name='proyeksi']:checked").value;
@@ -216,14 +203,19 @@ function setUIEventListener() {
         }
     }
 
-    document.getElementById('obj-input').addEventListener('change', callbackFile, false);
-    document.forms["model"].elements["bentuk"].forEach((item, i) => {
-        item.onclick = callbackModel;
-    });
-
     document.forms["model"].elements["proyeksi"].forEach((item, i) => {
         item.onclick = callbackProjection;
     });
+
+    document.getElementById("cam-radius").oninput = function () {
+        this.nextElementSibling.value = this.value;
+        state.view.radius = parseFloat(this.value);
+    };
+
+    document.getElementById("cam-rotation").oninput = function () {
+        this.nextElementSibling.value = this.value;
+        state.view.rotation = parseFloat(this.value);
+    };
 
 
     // -------------------- Color & etc --------------------

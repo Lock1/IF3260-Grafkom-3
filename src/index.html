@@ -21,17 +21,15 @@
 
         <div>
             <form name="model" id="model" action="">
-                <h2>Bentuk</h2>
-                <input type="file" id="obj-input"/>
-                <input type="color" id="color_picker" value="#ff5000">
+                <h2>Model</h2>
                 <div>
                     <label for="bentuk">Jenis bentuk:</label>
                     <input type="radio" name="bentuk" value="Model 1" checked>Model 1
-                    <input type="radio" name="bentuk" value="Model 2">Model 2
-                    <input type="radio" name="bentuk" value="Model 3">Model 3
                     <input type="radio" name="bentuk" value="Dog">Dog
+                    <input type="radio" name="bentuk" value="Model 3">Model 3
+                    <br><br>
+                    <input type="color" id="color_picker" value="#ff5000">
                 </div>
-                <br>
 
                 <h2>Proyeksi</h2>
                 <div>
@@ -43,6 +41,23 @@
 
                 <h2>Utilitas</h2>
                 <div>
+                    <label for="cam-radius">Camera radius:</label>
+                    <br>
+                    <input type="range" name="cam-radius" min="0" id="cam-radius" max="1" step="0.005" value="0.1"
+                        oninput="this.nextElementSibling.value = this.value">
+                    <output>0.1</output>
+                    <br>
+
+
+                    <label for="eye-y">Camera angle:</label>
+                    <br>
+                    <input type="range" name="cam-rotation" min="0" id="cam-rotation" max="360" value="60" oninput="this.nextElementSibling.value = this.value">
+                    <output>60</output>
+                    <br>
+                </div>
+                <br>
+
+                <div>
                     <label for="shading">Shading: </label>
                     <input type="checkbox" id="shading" name="shading" value="shading" checked>
                 </div>
@@ -52,12 +67,11 @@
                 </div>
                 <div>
                     <input type="reset" id="reset" name="reset" value="Reset">
-                </div>
-                <br>
-                <h2>Help Menu</h2>
-                <div>
                     <button type="help" id="help" onclick="window.open('./help.html','_blank')">Help</button>
                 </div>
+                <br>
+
+
 
             </form>
         </div>
