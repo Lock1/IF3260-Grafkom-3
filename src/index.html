@@ -26,7 +26,7 @@
                     <label for="bentuk">Jenis bentuk:</label>
                     <input type="radio" name="bentuk" value="Steve" checked>Steve
                     <input type="radio" name="bentuk" value="Dog">Dog
-                    <input type="radio" name="bentuk" value="Model 3">Model 3
+                    <input type="radio" name="bentuk" value="Model 3">Bumpy
                     <br><br>
                     <input type="color" id="color_picker" value="#ff5000">
                 </div>
@@ -103,6 +103,7 @@
     varying vec3 normal;
     varying vec3 surface;
     varying vec2 texcoord;
+    varying vec3 light_vec;
 
     void main(void) {
         vec4 transformedPos = transformationMatrix * vec4(coordinates.xy, coordinates.z * -1.0, 1.0);
@@ -120,6 +121,10 @@
 
         // Simple z-directional
         // colorFactor         = max((1.0 - transformedPos.z) / 2.0, 0.2);
+
+        // light_vec.x = dot(vec3(0.0, 0.0, 1.0), );
+        // light_vec.x = dot(vec3(0.0, 0.0, 1.0), );
+        // light_vec.x = dot(vec3(0.0, 0.0, 1.0), );
     }
 </script>
 
@@ -184,6 +189,33 @@
 
         // Simple z-directional
         // gl_FragColor     = vec4(userColor, 1.0);
+    }
+</script>
+
+<script id="fragment-shader-3d-bump" type="x-shader/x-fragment">
+    precision mediump float;
+    uniform vec3 userColor;
+    uniform sampler2D texture;
+    uniform samplerCube cubemap;
+
+    varying vec2 texcoord;
+    varying vec3 normal;
+    varying vec3 surface;
+    varying vec3 light_vec;
+
+    float rand(vec2 co){
+        return fract(sin(dot(co, vec2(12.9898, 78.233))) * 43758.5453);
+    }
+
+    void main(void) {
+        // -- Light --
+        // Using normal
+        vec3 normed_norm = normalize(normal);
+        float light      = dot(normed_norm, surface);
+
+        vec4 texture_color  = texture2D(texture, texcoord);
+
+        gl_FragColor = texture_color * max(light * rand(texcoord), 0.05);
     }
 </script>
 

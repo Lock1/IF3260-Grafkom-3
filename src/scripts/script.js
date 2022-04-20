@@ -27,9 +27,11 @@ function main() {
 
     var texturedShader = {};
     var cubemapShader  = {};
+    var bumpShader     = {};
     var flatShader     = {};
     texturedShader.program = webglCreateShaderProgram(gl, 'vertex-shader-3d', 'fragment-shader-3d-light');
     cubemapShader.program  = webglCreateShaderProgram(gl, 'vertex-shader-3d', 'fragment-shader-3d-cubemap');
+    bumpShader.program     = webglCreateShaderProgram(gl, 'vertex-shader-3d', 'fragment-shader-3d-bump');
     flatShader.program     = webglCreateShaderProgram(gl, 'vertex-shader-3d', 'fragment-shader-3d-flat');
 
     // -- Create buffer & pointer --
@@ -47,6 +49,7 @@ function main() {
 
     getLocation(gl, texturedShader);
     getLocation(gl, cubemapShader);
+    getLocation(gl, bumpShader);
     getLocation(gl, flatShader);
 
     window.requestAnimationFrame(render);
@@ -126,12 +129,14 @@ function main() {
     }
 
     function drawModel(model, transMatrix, viewMatrix) {
-        if (state.cubemap)
-            var shader = cubemapShader;
-        else if (state.useLight)
-            var shader = texturedShader;
-        else
+        if (!state.useLight)
             var shader = flatShader;
+        else if (state.shaderType == "texture")
+            var shader = texturedShader;
+        else if (state.shaderType == "envmap")
+            var shader = cubemapShader;
+        else
+            var shader = bumpShader;
 
         gl.useProgram(shader.program);
 
@@ -197,6 +202,8 @@ function main() {
                 flatColorTexture();
                 loadCubemap();
             }
+            else
+                flatColorTexture();
             state.texture_loaded = true;
         }
 
@@ -244,18 +251,22 @@ function setUIEventListener() {
             case "Steve":
                 state.articulated_model = articulated_model_1;
                 state.cubemap           = false;
+                state.shaderType        = "texture";
                 break;
             case "Dog":
                 state.articulated_model = articulated_model_2;
                 state.cubemap           = true;
+                state.shaderType        = "envmap";
                 break;
             case "Model 3":
                 state.articulated_model = articulated_model_3;
+                state.cubemap           = false;
+                state.shaderType        = "bumpmap";
                 break;
         }
     }
 
-    document.forms["model"].elements["bentuk"].forEach((item, i) => {
+    document.forms["model"].elements["bentuk"].forEach((item) => {
         item.onclick = callbackModel;
     });
 
@@ -271,7 +282,7 @@ function setUIEventListener() {
         }
     }
 
-    document.forms["model"].elements["proyeksi"].forEach((item, i) => {
+    document.forms["model"].elements["proyeksi"].forEach((item) => {
         item.onclick = callbackProjection;
     });
 
@@ -330,6 +341,7 @@ function setUIEventListener() {
 
             useLight      : true,
             cubemap       : false,
+            shaderType    : "texture",
             lightLocation : [0.0, 0.0, 1.2],
             projectionType: "orth", // orth, obli, pers
             pickedColor   : [1.0, 0.5, 0.0, 1.0],

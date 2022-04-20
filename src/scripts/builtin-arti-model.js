@@ -156,3 +156,57 @@ const articulated_model_2 = {
         },
     ]
 };
+
+
+
+// -- Articulated Model 1 --
+const arti_3_block_1 = {
+    model     : parserObjFile(block_obj),
+    view      : scaleMatrix(0.1, 0.3, 0.1),
+    child     : []
+};
+
+const arti_3_block_2 = {
+    model     : parserObjFile(block_obj),
+    view      : scaleMatrix(0.1, 0.3, 0.1),
+    child     : [
+        {
+            model    : arti_3_block_1,
+            view     : matrixInverse(matrixMult(rotationMatrix(Math.PI/2, 0, 0), translationMatrix(0, -0.5, 0.1))),
+            transform: identityMatrix(),
+        },
+    ]
+};
+
+const articulated_model_3 = {
+    model     : parserObjFile(simple_cube_obj, true),
+    view      : scaleMatrix(1, 1, 0.2),
+    animation : (step) => {
+        articulated_model_3.child[0].transform = rotationMatrix(-Math.sin(step*5), 0, 0);
+        articulated_model_3.child[1].transform = rotationMatrix(Math.sin(step*5), 0, 0);
+        articulated_model_3.child[2].transform = rotationMatrix(Math.sin(step*5), 0, 0);
+        articulated_model_3.child[3].transform = rotationMatrix(-Math.sin(step*5), 0, 0);
+    },
+    child     : [
+        {
+            model    : arti_3_block_2,
+            view     : matrixInverse(translationMatrix(-0.4, -0.5, 0)),
+            transform: identityMatrix(),
+        },
+        {
+            model    : arti_3_block_2,
+            view     : matrixInverse(matrixMult(rotationMatrix(0, 0, Math.PI), translationMatrix(-0.4, 0.5, 0))),
+            transform: identityMatrix(),
+        },
+        {
+            model    : arti_3_block_2,
+            view     : matrixInverse(translationMatrix(0.4, -0.5, 0)),
+            transform: identityMatrix(),
+        },
+        {
+            model    : arti_3_block_2,
+            view     : matrixInverse(matrixMult(rotationMatrix(0, 0, Math.PI), translationMatrix(0.4, 0.5, 0))),
+            transform: identityMatrix(),
+        },
+    ]
+};
