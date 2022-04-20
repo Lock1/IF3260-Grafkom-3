@@ -114,8 +114,8 @@
         // -- Light --
         // Using normal
         // normal              = (transformationMatrix * vec4(a_normal, 1.0)).xyz;
-        normal   = (uProjTransMatrix * transformationMatrix * vec4(a_normal, 1.0)).xyz;
-        surface  = lightCoordinate - vec3(location);
+        normal   = normalize((uProjTransMatrix * transformationMatrix * vec4(a_normal, 1.0)).xyz);
+        surface  = normalize(lightCoordinate - vec3(location));
         texcoord = a_texcoord;
 
         // Simple z-directional
@@ -129,8 +129,8 @@
     precision mediump float;
     uniform vec3 userColor;
     uniform sampler2D texture;
+    uniform samplerCube cubemap;
 
-    // varying float colorFactor;
     varying vec2 texcoord;
     varying vec3 normal;
     varying vec3 surface;
@@ -143,17 +143,22 @@
         // gl_FragColor     = vec4(userColor * max(light, 0.05), 1.0);
 
         // -- Texture --
-        gl_FragColor     = texture2D(texture, texcoord) * max(light, 0.05);
+        gl_FragColor = texture2D(texture, texcoord) * max(light, 0.05);
+
+        // -- Cubemap --
+        // vec3 reflect = surface - 2.0 * dot(normal, surface) * normal;
+        // gl_FragColor = textureCube(cubemap, reflect) * max(light, 0.05);
+
+
 
         // Simple z-directional
-        // gl_FragColor     = vec4(userColor * colorFactor, 1.0);
+        // gl_FragColor     = vec4(userColor, 1.0);
     }
 </script>
 
 <script id="fragment-shader-3d-flat" type="x-shader/x-fragment">
     precision mediump float;
     uniform vec3 userColor;
-    varying vec3 normal;
 
     void main(void) {
         gl_FragColor = vec4(userColor, 1.0);

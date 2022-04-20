@@ -29,6 +29,7 @@ function main() {
     var normBuffer     = gl.createBuffer();
     var textBuffer     = gl.createBuffer();
     var textureBuffer  = gl.createTexture();
+    var cubemapBuffer  = gl.createTexture();
 
     var lightCoordLoc  = gl.getAttribLocation(lightingShaderProgram, "coordinates");
     var lightNormLoc   = gl.getAttribLocation(lightingShaderProgram, "a_normal");
@@ -42,7 +43,7 @@ function main() {
 
     var flatCoordLoc  = gl.getAttribLocation(flatShaderProgram, "coordinates");
     var flatNormLoc   = gl.getAttribLocation(flatShaderProgram, "a_normal");
-    var flatTextLoc   = gl.getAttribLocation(lightingShaderProgram, "a_texcoord");
+    var flatTextLoc   = gl.getAttribLocation(flatShaderProgram, "a_texcoord");
     var flatTrMatLoc  = gl.getUniformLocation(flatShaderProgram, "transformationMatrix");
     var flatColorLoc  = gl.getUniformLocation(flatShaderProgram, "userColor");
     var flatPrjMatLoc = gl.getUniformLocation(flatShaderProgram, "uProjectionMatrix");
@@ -61,6 +62,48 @@ function main() {
             gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, image);
             gl.generateMipmap(gl.TEXTURE_2D);
         });
+    }
+
+    function loadCubemap() {
+        var cubemapFaces = [
+            {
+                face: gl.TEXTURE_CUBE_MAP_POSITIVE_X,
+                src : 'pos-x.jpg',
+            },
+            {
+                face: gl.TEXTURE_CUBE_MAP_NEGATIVE_X,
+                src : 'neg-x.jpg',
+            },
+            {
+                face: gl.TEXTURE_CUBE_MAP_POSITIVE_Y,
+                src : 'pos-y.jpg',
+            },
+            {
+                face: gl.TEXTURE_CUBE_MAP_NEGATIVE_Y,
+                src : 'neg-y.jpg',
+            },
+            {
+                face: gl.TEXTURE_CUBE_MAP_POSITIVE_Z,
+                src : 'pos-z.jpg',
+            },
+            {
+                face: gl.TEXTURE_CUBE_MAP_NEGATIVE_Z,
+                src : 'neg-z.jpg',
+            },
+        ];
+
+        cubemapFaces.forEach((metadata) => {
+            gl.texImage2D(metadata.face, 0, gl.RGBA, 512, 512, 0, gl.RGBA, gl.UNSIGNED_BYTE, null);
+            var image = new Image();
+            image.src = metadata.src;
+            image.addEventListener("load", () => {
+                gl.bindTexture(gl.TEXTURE_CUBE_MAP, cubemapBuffer);
+                gl.texImage2D(metadata.face, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, image);
+                gl.generateMipmap(gl.TEXTURE_CUBE_MAP);
+            });
+        });
+        gl.generateMipmap(gl.TEXTURE_CUBE_MAP);
+        gl.texParameteri(gl.TEXTURE_CUBE_MAP, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_LINEAR);
     }
 
     function flatColorTexture() {
@@ -95,8 +138,6 @@ function main() {
             var projTrsLoc    = lightPrjTrsLoc;
             var lightLoc      = lightLightCoor;
             var fudgeLoc      = lightFudgeLoc;
-            if (model.articulated_model == articulated_model_1)
-                useTexture("board256.png");
         }
         else {
             var shaderProgram = flatShaderProgram;
@@ -176,13 +217,16 @@ function main() {
         else
             state.articulated_model.animation(0);
 
-        var selectedModelRadio = document.querySelector("input[name='bentuk']:checked").value;
-        if (selectedModelRadio == "Steve") {
-            useTexture("board256.png");
-        }
-        else if (selectedModelRadio == "Dog") {
-            flatColorTexture();
-            // TODO : TBA
+        if (!state.texture_loaded) {
+            var selectedModelRadio = document.querySelector("input[name='bentuk']:checked").value;
+            if (selectedModelRadio == "Steve") {
+                useTexture("board256.png");
+            }
+            else if (selectedModelRadio == "Dog") {
+                flatColorTexture();
+                loadCubemap();
+            }
+            state.texture_loaded = true;
         }
 
         drawArticulatedModel(state.articulated_model, viewMatrix);
@@ -219,6 +263,7 @@ function setUIEventListener() {
     // -------------------- Model & Projection --------------------
     function callbackModel(e) {
         var selectedModelRadio = document.querySelector("input[name='bentuk']:checked").value;
+        state.texture_loaded   = false;
         switch (selectedModelRadio) {
             case "Steve":
                 state.articulated_model = articulated_model_1;
