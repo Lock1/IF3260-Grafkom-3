@@ -25,11 +25,14 @@ function main() {
     gl.useProgram(lightingShaderProgram);
 
     // -- Create buffer & pointer --
-    var vertexBuffer = gl.createBuffer();
-    var normBuffer   = gl.createBuffer();
+    var vertexBuffer   = gl.createBuffer();
+    var normBuffer     = gl.createBuffer();
+    var textBuffer     = gl.createBuffer();
+    var textureBuffer  = gl.createTexture();
 
     var lightCoordLoc  = gl.getAttribLocation(lightingShaderProgram, "coordinates");
     var lightNormLoc   = gl.getAttribLocation(lightingShaderProgram, "a_normal");
+    var lightTextLoc   = gl.getAttribLocation(lightingShaderProgram, "a_texcoord");
     var lightTrMatLoc  = gl.getUniformLocation(lightingShaderProgram, "transformationMatrix");
     var lightColorLoc  = gl.getUniformLocation(lightingShaderProgram, "userColor");
     var lightPrjMatLoc = gl.getUniformLocation(lightingShaderProgram, "uProjectionMatrix");
@@ -39,6 +42,7 @@ function main() {
 
     var flatCoordLoc  = gl.getAttribLocation(flatShaderProgram, "coordinates");
     var flatNormLoc   = gl.getAttribLocation(flatShaderProgram, "a_normal");
+    var flatTextLoc   = gl.getAttribLocation(lightingShaderProgram, "a_texcoord");
     var flatTrMatLoc  = gl.getUniformLocation(flatShaderProgram, "transformationMatrix");
     var flatColorLoc  = gl.getUniformLocation(flatShaderProgram, "userColor");
     var flatPrjMatLoc = gl.getUniformLocation(flatShaderProgram, "uProjectionMatrix");
@@ -46,6 +50,30 @@ function main() {
     var flatLightCoor = gl.getUniformLocation(flatShaderProgram, "lightCoordinate");
     var flatFudgeLoc  = gl.getUniformLocation(flatShaderProgram, "fudgeFactor");
     window.requestAnimationFrame(render);
+
+
+
+    function useTexture(filename) {
+        var image = new Image();
+        image.src = filename;
+        image.addEventListener("load", () => {
+            gl.bindTexture(gl.TEXTURE_2D, textureBuffer);
+            gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, image);
+            gl.generateMipmap(gl.TEXTURE_2D);
+        });
+    }
+
+    function flatColorTexture() {
+        gl.bindTexture(gl.TEXTURE_2D, textureBuffer);
+        gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, 1, 1, 0, gl.RGBA, gl.UNSIGNED_BYTE,
+            new Uint8Array([
+                state.pickedColor[0]*255,
+                state.pickedColor[1]*255,
+                state.pickedColor[2]*255,
+                255
+            ]
+        ));
+    }
 
     function drawArticulatedModel(tree_model, parentView=identityMatrix()) {
         drawModel(tree_model.model, tree_model.view, parentView);
@@ -60,17 +88,21 @@ function main() {
             var shaderProgram = lightingShaderProgram;
             var coordLoc      = lightCoordLoc;
             var normLoc       = lightNormLoc;
+            var textLoc       = lightTextLoc;
             var trMatLoc      = lightTrMatLoc;
             var colorLoc      = lightColorLoc;
             var projLoc       = lightPrjMatLoc;
             var projTrsLoc    = lightPrjTrsLoc;
             var lightLoc      = lightLightCoor;
             var fudgeLoc      = lightFudgeLoc;
+            if (model.articulated_model == articulated_model_1)
+                useTexture("board256.png");
         }
         else {
             var shaderProgram = flatShaderProgram;
             var coordLoc      = flatCoordLoc;
             var normLoc       = flatNormLoc;
+            var textLoc       = flatTextLoc;
             var trMatLoc      = flatTrMatLoc;
             var colorLoc      = flatColorLoc;
             var projLoc       = flatPrjMatLoc;
@@ -88,6 +120,11 @@ function main() {
         gl.bindBuffer(gl.ARRAY_BUFFER, normBuffer);
         gl.vertexAttribPointer(normLoc, 3, gl.FLOAT, false, 0, 0);
         gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(model.f_norm), gl.STATIC_DRAW);
+
+        gl.enableVertexAttribArray(textLoc);
+        gl.bindBuffer(gl.ARRAY_BUFFER, textBuffer);
+        gl.vertexAttribPointer(textLoc, 2, gl.FLOAT, false, 0, 0);
+        gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(model.f_text), gl.STATIC_DRAW);
 
         gl.uniformMatrix4fv(trMatLoc, false, new Float32Array(transMatrix));
         gl.uniformMatrix4fv(projLoc, false, viewMatrix);
@@ -139,6 +176,15 @@ function main() {
         else
             state.articulated_model.animation(0);
 
+        var selectedModelRadio = document.querySelector("input[name='bentuk']:checked").value;
+        if (selectedModelRadio == "Steve") {
+            useTexture("board256.png");
+        }
+        else if (selectedModelRadio == "Dog") {
+            flatColorTexture();
+            // TODO : TBA
+        }
+
         drawArticulatedModel(state.articulated_model, viewMatrix);
 
         window.requestAnimationFrame(render);
@@ -174,7 +220,7 @@ function setUIEventListener() {
     function callbackModel(e) {
         var selectedModelRadio = document.querySelector("input[name='bentuk']:checked").value;
         switch (selectedModelRadio) {
-            case "Model 1":
+            case "Steve":
                 state.articulated_model = articulated_model_1;
                 break;
             case "Dog":
@@ -183,7 +229,6 @@ function setUIEventListener() {
             case "Model 3":
                 state.articulated_model = articulated_model_3;
                 break;
-
         }
     }
 

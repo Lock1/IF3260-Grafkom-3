@@ -24,7 +24,7 @@
                 <h2>Model</h2>
                 <div>
                     <label for="bentuk">Jenis bentuk:</label>
-                    <input type="radio" name="bentuk" value="Model 1" checked>Model 1
+                    <input type="radio" name="bentuk" value="Steve" checked>Steve
                     <input type="radio" name="bentuk" value="Dog">Dog
                     <input type="radio" name="bentuk" value="Model 3">Model 3
                     <br><br>
@@ -72,9 +72,12 @@
                 <br>
 
 
-
             </form>
         </div>
+
+        <!-- <div>
+            <img src="f-texture.png">
+        </div> -->
     </div>
     <br>
 </body>
@@ -88,6 +91,7 @@
 <script id="vertex-shader-3d" type="x-shader/x-vertex">
     attribute vec3 coordinates;
     attribute vec3 a_normal;
+    attribute vec2 a_texcoord;
 
     uniform mat4 transformationMatrix;
     uniform float fudgeFactor;
@@ -98,6 +102,7 @@
     varying float colorFactor;
     varying vec3 normal;
     varying vec3 surface;
+    varying vec2 texcoord;
 
     void main(void) {
         vec4 transformedPos = transformationMatrix * vec4(coordinates.xy, coordinates.z * -1.0, 1.0);
@@ -109,8 +114,9 @@
         // -- Light --
         // Using normal
         // normal              = (transformationMatrix * vec4(a_normal, 1.0)).xyz;
-        normal              = (uProjTransMatrix * transformationMatrix * vec4(a_normal, 1.0)).xyz;
-        surface             = lightCoordinate - vec3(location);
+        normal   = (uProjTransMatrix * transformationMatrix * vec4(a_normal, 1.0)).xyz;
+        surface  = lightCoordinate - vec3(location);
+        texcoord = a_texcoord;
 
         // Simple z-directional
         // colorFactor         = max((1.0 - transformedPos.z) / 2.0, 0.2);
@@ -122,8 +128,10 @@
 <script id="fragment-shader-3d-light" type="x-shader/x-fragment">
     precision mediump float;
     uniform vec3 userColor;
+    uniform sampler2D texture;
 
     // varying float colorFactor;
+    varying vec2 texcoord;
     varying vec3 normal;
     varying vec3 surface;
 
@@ -132,7 +140,10 @@
         // Using normal
         vec3 normed_norm = normalize(normal);
         float light      = dot(normed_norm, surface);
-        gl_FragColor     = vec4(userColor * max(light, 0.05), 1.0);
+        // gl_FragColor     = vec4(userColor * max(light, 0.05), 1.0);
+
+        // -- Texture --
+        gl_FragColor     = texture2D(texture, texcoord) * max(light, 0.05);
 
         // Simple z-directional
         // gl_FragColor     = vec4(userColor * colorFactor, 1.0);
