@@ -19,37 +19,36 @@ function main() {
         return;
     }
 
-    var lightingShaderProgram = webglCreateShaderProgram(gl, 'vertex-shader-3d', 'fragment-shader-3d-light');
-    var flatShaderProgram     = webglCreateShaderProgram(gl, 'vertex-shader-3d', 'fragment-shader-3d-flat');
-
-    gl.useProgram(lightingShaderProgram);
-
-    // -- Create buffer & pointer --
     var vertexBuffer   = gl.createBuffer();
     var normBuffer     = gl.createBuffer();
     var textBuffer     = gl.createBuffer();
     var textureBuffer  = gl.createTexture();
     var cubemapBuffer  = gl.createTexture();
 
-    var lightCoordLoc  = gl.getAttribLocation(lightingShaderProgram, "coordinates");
-    var lightNormLoc   = gl.getAttribLocation(lightingShaderProgram, "a_normal");
-    var lightTextLoc   = gl.getAttribLocation(lightingShaderProgram, "a_texcoord");
-    var lightTrMatLoc  = gl.getUniformLocation(lightingShaderProgram, "transformationMatrix");
-    var lightColorLoc  = gl.getUniformLocation(lightingShaderProgram, "userColor");
-    var lightPrjMatLoc = gl.getUniformLocation(lightingShaderProgram, "uProjectionMatrix");
-    var lightPrjTrsLoc = gl.getUniformLocation(lightingShaderProgram, "uProjTransMatrix");
-    var lightLightCoor = gl.getUniformLocation(lightingShaderProgram, "lightCoordinate");
-    var lightFudgeLoc  = gl.getUniformLocation(lightingShaderProgram, "fudgeFactor");
+    var texturedShader = {};
+    var cubemapShader  = {};
+    var flatShader     = {};
+    texturedShader.program = webglCreateShaderProgram(gl, 'vertex-shader-3d', 'fragment-shader-3d-light');
+    cubemapShader.program  = webglCreateShaderProgram(gl, 'vertex-shader-3d', 'fragment-shader-3d-cubemap');
+    flatShader.program     = webglCreateShaderProgram(gl, 'vertex-shader-3d', 'fragment-shader-3d-flat');
 
-    var flatCoordLoc  = gl.getAttribLocation(flatShaderProgram, "coordinates");
-    var flatNormLoc   = gl.getAttribLocation(flatShaderProgram, "a_normal");
-    var flatTextLoc   = gl.getAttribLocation(flatShaderProgram, "a_texcoord");
-    var flatTrMatLoc  = gl.getUniformLocation(flatShaderProgram, "transformationMatrix");
-    var flatColorLoc  = gl.getUniformLocation(flatShaderProgram, "userColor");
-    var flatPrjMatLoc = gl.getUniformLocation(flatShaderProgram, "uProjectionMatrix");
-    var flatPrjTrsLoc = gl.getUniformLocation(flatShaderProgram, "uProjTransMatrix");
-    var flatLightCoor = gl.getUniformLocation(flatShaderProgram, "lightCoordinate");
-    var flatFudgeLoc  = gl.getUniformLocation(flatShaderProgram, "fudgeFactor");
+    // -- Create buffer & pointer --
+    function getLocation(gl, target) {
+        target.coordLoc  = gl.getAttribLocation(target.program, "coordinates");
+        target.normLoc   = gl.getAttribLocation(target.program, "a_normal");
+        target.textLoc   = gl.getAttribLocation(target.program, "a_texcoord");
+        target.trMatLoc  = gl.getUniformLocation(target.program, "transformationMatrix");
+        target.colorLoc  = gl.getUniformLocation(target.program, "userColor");
+        target.prjMatLoc = gl.getUniformLocation(target.program, "uProjectionMatrix");
+        target.prjTrsLoc = gl.getUniformLocation(target.program, "uProjTransMatrix");
+        target.lightCoor = gl.getUniformLocation(target.program, "lightCoordinate");
+        target.fudgeLoc  = gl.getUniformLocation(target.program, "fudgeFactor");
+    }
+
+    getLocation(gl, texturedShader);
+    getLocation(gl, cubemapShader);
+    getLocation(gl, flatShader);
+
     window.requestAnimationFrame(render);
 
 
@@ -127,56 +126,40 @@ function main() {
     }
 
     function drawModel(model, transMatrix, viewMatrix) {
-        if (state.useLight) {
-            var shaderProgram = lightingShaderProgram;
-            var coordLoc      = lightCoordLoc;
-            var normLoc       = lightNormLoc;
-            var textLoc       = lightTextLoc;
-            var trMatLoc      = lightTrMatLoc;
-            var colorLoc      = lightColorLoc;
-            var projLoc       = lightPrjMatLoc;
-            var projTrsLoc    = lightPrjTrsLoc;
-            var lightLoc      = lightLightCoor;
-            var fudgeLoc      = lightFudgeLoc;
-        }
-        else {
-            var shaderProgram = flatShaderProgram;
-            var coordLoc      = flatCoordLoc;
-            var normLoc       = flatNormLoc;
-            var textLoc       = flatTextLoc;
-            var trMatLoc      = flatTrMatLoc;
-            var colorLoc      = flatColorLoc;
-            var projLoc       = flatPrjMatLoc;
-            var projTrsLoc    = flatPrjTrsLoc;
-            var lightLoc      = flatLightCoor;
-            var fudgeLoc      = flatFudgeLoc;
-        }
+        if (state.cubemap)
+            var shader = cubemapShader;
+        else if (state.useLight)
+            var shader = texturedShader;
+        else
+            var shader = flatShader;
 
-        gl.enableVertexAttribArray(coordLoc);
+        gl.useProgram(shader.program);
+
+        gl.enableVertexAttribArray(shader.coordLoc);
         gl.bindBuffer(gl.ARRAY_BUFFER, vertexBuffer);
-        gl.vertexAttribPointer(coordLoc, 3, gl.FLOAT, false, 0, 0);
+        gl.vertexAttribPointer(shader.coordLoc, 3, gl.FLOAT, false, 0, 0);
         gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(model.f_vert), gl.STATIC_DRAW);
 
-        gl.enableVertexAttribArray(normLoc);
+        gl.enableVertexAttribArray(shader.normLoc);
         gl.bindBuffer(gl.ARRAY_BUFFER, normBuffer);
-        gl.vertexAttribPointer(normLoc, 3, gl.FLOAT, false, 0, 0);
+        gl.vertexAttribPointer(shader.normLoc, 3, gl.FLOAT, false, 0, 0);
         gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(model.f_norm), gl.STATIC_DRAW);
 
-        gl.enableVertexAttribArray(textLoc);
+        gl.enableVertexAttribArray(shader.textLoc);
         gl.bindBuffer(gl.ARRAY_BUFFER, textBuffer);
-        gl.vertexAttribPointer(textLoc, 2, gl.FLOAT, false, 0, 0);
+        gl.vertexAttribPointer(shader.textLoc, 2, gl.FLOAT, false, 0, 0);
         gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(model.f_text), gl.STATIC_DRAW);
 
-        gl.uniformMatrix4fv(trMatLoc, false, new Float32Array(transMatrix));
-        gl.uniformMatrix4fv(projLoc, false, viewMatrix);
-        gl.uniformMatrix4fv(projTrsLoc, false, transposeMatrix(viewMatrix));
-        gl.uniform3f(colorLoc, state.pickedColor[0], state.pickedColor[1], state.pickedColor[2]);
-        gl.uniform3f(lightLoc, state.lightLocation[0], state.lightLocation[1], state.lightLocation[2]);
+        gl.uniformMatrix4fv(shader.trMatLoc, false, new Float32Array(transMatrix));
+        gl.uniformMatrix4fv(shader.prjMatLoc, false, viewMatrix);
+        gl.uniformMatrix4fv(shader.prjTrsLoc, false, transposeMatrix(viewMatrix));
+        gl.uniform3f(shader.colorLoc, state.pickedColor[0], state.pickedColor[1], state.pickedColor[2]);
+        gl.uniform3f(shader.lightCoor, state.lightLocation[0], state.lightLocation[1], state.lightLocation[2]);
 
         if (state.projectionType === "pers")
-            gl.uniform1f(fudgeLoc, 1.275);
+            gl.uniform1f(shader.fudgeLoc, 1.275);
         else
-            gl.uniform1f(fudgeLoc, 0);
+            gl.uniform1f(shader.fudgeLoc, 0);
 
         // Draw
         gl.drawArrays(gl.TRIANGLES, 0, model.f_vert.length / 3);
@@ -199,17 +182,6 @@ function main() {
         if (state.transformation.rotation[1] > Math.PI)
             state.transformation.rotation[1] = -Math.PI;
 
-        if (state.useLight)
-            var shaderProgram = lightingShaderProgram;
-        else
-            var shaderProgram = flatShaderProgram;
-
-        gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
-        gl.clearColor(0.0, 0.0, 0.0, 1.0);
-        gl.enable(gl.DEPTH_TEST);
-        gl.enable(gl.CULL_FACE);
-
-        gl.useProgram(shaderProgram);
         var viewMatrix = matrixMult(projectionMatrix(state.projectionType), computeViewMatrix());
 
         if (state.useAnimation)
@@ -219,15 +191,19 @@ function main() {
 
         if (!state.texture_loaded) {
             var selectedModelRadio = document.querySelector("input[name='bentuk']:checked").value;
-            if (selectedModelRadio == "Steve") {
+            if (selectedModelRadio == "Steve")
                 useTexture("board256.png");
-            }
             else if (selectedModelRadio == "Dog") {
                 flatColorTexture();
                 loadCubemap();
             }
             state.texture_loaded = true;
         }
+
+        gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+        gl.clearColor(0.0, 0.0, 0.0, 1.0);
+        gl.enable(gl.DEPTH_TEST);
+        gl.enable(gl.CULL_FACE);
 
         drawArticulatedModel(state.articulated_model, viewMatrix);
 
@@ -267,9 +243,11 @@ function setUIEventListener() {
         switch (selectedModelRadio) {
             case "Steve":
                 state.articulated_model = articulated_model_1;
+                state.cubemap           = false;
                 break;
             case "Dog":
                 state.articulated_model = articulated_model_2;
+                state.cubemap           = true;
                 break;
             case "Model 3":
                 state.articulated_model = articulated_model_3;
@@ -351,6 +329,7 @@ function setUIEventListener() {
             },
 
             useLight      : true,
+            cubemap       : false,
             lightLocation : [0.0, 0.0, 1.2],
             projectionType: "orth", // orth, obli, pers
             pickedColor   : [1.0, 0.5, 0.0, 1.0],
